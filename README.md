@@ -1,4 +1,4 @@
-## Установка
+## Setup
 
 ```bash
 git clone https://github.com/nekto007/selfstorage_bot.git
