@@ -76,6 +76,12 @@ class Clients(UUIDMixin, TimeStampedMixin):
         blank=True,
         verbose_name='Phone Number'
     )
+    email = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name='email'
+    )
     is_admin = models.BooleanField(
         null=True,
         blank=True,
