@@ -140,6 +140,17 @@ class Orders(models.Model):
         null=False,
         default=0,
         verbose_name='Storage cost')
+    address_from = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True,
+        verbose_name='Address of picking up'
+    )
+    date_delivery_from = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Date of delivery to the warehouse'
+    )
 
     def __str__(self):
         return self.get_order_num(self.id, self.user)
@@ -171,6 +182,7 @@ class Orders(models.Model):
         new_order.store_duration = int(order_values['months'])
         new_order.num = Orders.get_order_num(new_order.id, user)
         new_order.cost = order_values['order_cost']
+        new_order.address_from = order_values['address_from']
         new_order.save()
         return new_order.create_qr_code()
 
