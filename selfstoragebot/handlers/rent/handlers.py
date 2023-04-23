@@ -90,3 +90,34 @@ def get_user_email(update: Update, rent_description):
         return PHONE
     update.message.reply_text('Вы ввели некорректные данные. Попробуйте еще раз')
     return EMAIL
+
+def get_user_choice(update, context):
+    return ConversationHandler.END
+
+
+def pantry_delivery(update, context):
+    print('pantry_delivery')
+    ''' Сохраняем вид доставки вещей от клиента и спрашиваем адрес '''
+
+    query = update.callback_query
+    # variant = format_delivery_method(int(query.data))
+    # query.answer()
+    # query.edit_message_text(text=f"Вы выбрали: {variant}")
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text='Введите адрес, откуда забрать вещи')
+    # return USER_ADDRESS
+    return ConversationHandler.END
+
+
+def get_user_phone(update, context):
+    print('get_user_phone')
+    ''' Сохраняем номер телефона и завершаем разговор'''
+
+    user = update.message.from_user
+    user_phone = update.message.text
+    logger.info('Пользователь %s ввел телефон %s', user.first_name, user_phone)
+    update.message.reply_text('Давайте рассчитаем примерную стоимость хранения')
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text='Пожалуйста, введите вес Ваших вещей (в кг.)')
+    # return WEIGHT
+    return ConversationHandler.END
