@@ -45,11 +45,12 @@ def send_message_with_addresses(update: Update, _):
         return OUR_DELIVERY
 
 
-def delivery_options(update: Update, _):
+def delivery_options(update: Update, rent_description):
     print('delivery_options')
     answer = update.message.text
     if static_text.choose_option.index(answer) == 0:
         text = static_text.request_email
+        rent_description.bot_data['type_delivery'] = 0
         update.message.reply_text(
             text
         )
@@ -116,6 +117,7 @@ def pantry_delivery(update: Update, rent_description):
     address_from = update.message.text
     user = update.message.from_user
     rent_description.bot_data['address_from'] = address_from
+    rent_description.bot_data['type_delivery'] = 1
     logger.info('Пользователь %s ввел исходящий адрес %s', user.first_name, address_from)
     text = static_text.request_email
     update.message.reply_text(

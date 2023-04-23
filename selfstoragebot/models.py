@@ -93,9 +93,17 @@ class Clients(UUIDMixin, TimeStampedMixin):
 
 
 class Orders(models.Model):
-    class DurationType(models.TextChoices):
-        week = '0', _('week')
-        month = '1', _('month')
+    class Status(models.TextChoices):
+        created = '0', _('Создан')
+        in_progress = '1', _('В работе')
+        waiting_for_delivery = '2', _('Ожидает доставки')
+        in_route = '3', _('Курьер в пути')
+        Completed = '4', _('Груз на складе')
+        retrieved = '5', _('Возвращен')
+
+    class TypeDelivery(models.TextChoices):
+        yourself = '0', _('Самостоятельно')
+        сourier = '1', _('Курьером')
 
     num = models.CharField(
         max_length=100,
@@ -151,6 +159,21 @@ class Orders(models.Model):
         blank=True,
         verbose_name='Date of delivery to the warehouse'
     )
+    delivery_status = models.CharField(
+        "Статус доставки заказа",
+        null=True,
+        max_length=15,
+        choices=Status.choices,
+        default=0,
+        db_index=True,
+    )
+    type_delivery = models.CharField(
+        "Тип доставки",
+        null=True,
+        max_length=15,
+        choices=TypeDelivery.choices,
+        db_index=True,
+    )
 
     def __str__(self):
         return self.get_order_num(self.id, self.user)
@@ -182,6 +205,7 @@ class Orders(models.Model):
         new_order.store_duration = int(order_values['months'])
         new_order.num = Orders.get_order_num(new_order.id, user)
         new_order.cost = order_values['order_cost']
+        new_order.type_delivery = order_values['type_delivery']
         if order_values.get('address_from'):
             new_order.address_from = order_values['address_from']
         new_order.save()
