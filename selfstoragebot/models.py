@@ -76,6 +76,12 @@ class Clients(UUIDMixin, TimeStampedMixin):
         blank=True,
         verbose_name='Phone Number'
     )
+    is_admin = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name='Администратор'
+    )
 
     def __str__(self):
         if self.username:
@@ -130,8 +136,7 @@ class Goods(UUIDMixin, TimeStampedMixin):
             self,
             duration: int,
             is_month: bool,
-            count: int,
-            promo: str
+            count: int
     ):
 
         if self.seasonal:
@@ -145,11 +150,6 @@ class Goods(UUIDMixin, TimeStampedMixin):
                        self.month_tariff * (int(count) - 1) * int(duration)
             else:
                 cost = self.week_tariff * int(duration)
-
-        if promo == 'storage2022' and int(duration) >= 4 and is_month:
-            return cost * 0.8
-        if promo == 'storage15' and int(duration) <= 4 and not is_month:
-            return cost * 0.85
         return cost
 
     class Meta:
@@ -237,10 +237,10 @@ class Orders(models.Model):
 
         if is_seasonal:
             thing = Goods.objects.get(
-                thing_name=order_values['stuff_category'])
+                name=order_values['stuff_category'])
             seasonal_things_count = int(order_values['stuff_count'])
         else:
-            thing = Goods.objects.get(thing_name=order_values['category'])
+            thing = Goods.objects.get(name=order_values['category'])
             other_type_size = int(order_values['dimensions'])
 
         user = Clients.objects.get(
@@ -248,7 +248,7 @@ class Orders(models.Model):
 
         new_order = Orders(
             order_num=Orders.get_order_num(1, user),
-            storage=Warehouses.objects.get(storage_name=order_values['address']),
+            storage=Warehouses.objects.get(name=order_values['address']),
             user=user,
             thing=thing
         )
@@ -262,8 +262,7 @@ class Orders(models.Model):
         new_order.summa = thing.get_storage_cost(
             int(order_values['period_count']),
             True if is_month == '1' else False,
-            new_order.seasonal_goods_count if is_seasonal else new_order.other_type_size,
-            order_values['promo_code']
+            new_order.seasonal_goods_count if is_seasonal else new_order.other_type_size
         )
         new_order.save()
         return new_order.create_qr_code()
