@@ -182,7 +182,8 @@ class Orders(models.Model):
         new_order.store_duration = int(order_values['months'])
         new_order.num = Orders.get_order_num(new_order.id, user)
         new_order.cost = order_values['order_cost']
-        new_order.address_from = order_values['address_from']
+        if order_values.get('address_from'):
+            new_order.address_from = order_values['address_from']
         new_order.save()
         return new_order.create_qr_code()
 
