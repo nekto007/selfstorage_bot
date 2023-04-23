@@ -43,6 +43,10 @@ class Warehouses(UUIDMixin, TimeStampedMixin):
     def __str__(self):
         return f'{self.name}'
 
+    class Meta:
+        verbose_name = 'Warehouse'
+        verbose_name_plural = 'Warehouses'
+
 
 class Clients(UUIDMixin, TimeStampedMixin):
     telegram_id = models.IntegerField(unique=True)
@@ -57,12 +61,6 @@ class Clients(UUIDMixin, TimeStampedMixin):
         null=True,
         blank=False,
         verbose_name='First Name'
-    )
-    middle_name = models.CharField(
-        max_length=256,
-        null=True,
-        blank=True,
-        verbose_name='Middle Name'
     )
     last_name = models.CharField(
         max_length=256,
@@ -82,12 +80,6 @@ class Clients(UUIDMixin, TimeStampedMixin):
         blank=True,
         verbose_name='email'
     )
-    is_admin = models.BooleanField(
-        null=True,
-        blank=True,
-        default=False,
-        verbose_name='Администратор'
-    )
 
     def __str__(self):
         if self.username:
@@ -98,69 +90,6 @@ class Clients(UUIDMixin, TimeStampedMixin):
     class Meta:
         verbose_name = 'Client'
         verbose_name_plural = 'Clients'
-
-
-class Goods(UUIDMixin, TimeStampedMixin):
-    name = models.CharField(
-        max_length=255,
-        null=True,
-        blank=False,
-        unique=True,
-        verbose_name='Name goods'
-    )
-    seasonal = models.BooleanField(
-        null=False,
-        default=False,
-        verbose_name='Сезонная вещь'
-    )
-    week_tariff = models.IntegerField(
-        null=False,
-        default=0,
-        verbose_name='Storage price per week'
-    )
-    month_tariff = models.IntegerField(
-        null=False,
-        default=0,
-        verbose_name='Storage price per month'
-    )
-
-    def __str__(self):
-        if self.name:
-            return f'{self.name}'
-        else:
-            return f'{self.id}'
-
-    def get_storage_tariff(self):
-        cost = {}
-        if self.week_tariff > 0:
-            cost['week_tariff'] = self.week_tariff
-        if self.month_tariff > 0:
-            cost['month_tariff'] = self.month_tariff
-        return cost
-
-    def get_storage_cost(
-            self,
-            duration: int,
-            is_month: bool,
-            count: int
-    ):
-
-        if self.seasonal:
-            if is_month:
-                cost = int(duration) * self.month_tariff * int(count)
-            else:
-                cost = int(duration) * self.week_tariff * int(count)
-        else:
-            if int(count) > 1:
-                cost = self.week_tariff * int(duration) + \
-                       self.month_tariff * (int(count) - 1) * int(duration)
-            else:
-                cost = self.week_tariff * int(duration)
-        return cost
-
-    class Meta:
-        verbose_name = 'Stored item'
-        verbose_name_plural = 'Stored items'
 
 
 class Orders(models.Model):
@@ -190,30 +119,23 @@ class Orders(models.Model):
         on_delete=models.CASCADE,
         related_name='orders',
         verbose_name='Client')
-    seasonal_store = models.BooleanField(
-        null=False,
-        default=False,
-        verbose_name='Seasonal items')
-    good = models.ForeignKey(
-        Goods,
-        on_delete=models.CASCADE,
-        related_name='orders',
-        verbose_name='Stored item')
-    other_type_size = models.IntegerField(
+    weight = models.IntegerField(
         null=True,
         default=0,
-        verbose_name='Cell size')
-    seasonal_goods_count = models.IntegerField(
+        verbose_name='Weight of item')
+    volume = models.IntegerField(
         null=True,
-        verbose_name='Number of seasonal items')
+        default=0,
+        verbose_name='Volume of item')
     store_duration = models.IntegerField(
         null=True,
         verbose_name='Duration of storage')
-    store_duration_type = models.CharField(
-        max_length=1,
-        choices=DurationType.choices,
-        default='0',
-        verbose_name='Unit of storage time')
+    name = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name='Name of item'
+    )
     cost = models.FloatField(
         null=False,
         default=0,
@@ -235,41 +157,19 @@ class Orders(models.Model):
 
     @classmethod
     def save_order(cls, order_values):
-        seasonal_things_count = 0
-        other_type_size = 0
-        is_month = '1' if order_values['period_name'] == 'month' else '0'
-        is_seasonal = True if order_values['category'] == 'Seasonal items' else \
-            False
-
-        if is_seasonal:
-            thing = Goods.objects.get(
-                name=order_values['stuff_category'])
-            seasonal_things_count = int(order_values['stuff_count'])
-        else:
-            thing = Goods.objects.get(name=order_values['category'])
-            other_type_size = int(order_values['dimensions'])
 
         user = Clients.objects.get(
             telegram_id=order_values['user_telegram_id'])
-
         new_order = Orders(
             num=Orders.get_order_num(1, user),
-            storage=Warehouses.objects.get(name=order_values['address']),
-            user=user,
-            thing=thing
+            warehouse=Warehouses.objects.get(name=order_values['address']),
+            user=user
         )
-        new_order.seasonal_store = is_seasonal
-        new_order.store_duration = int(order_values['period_count'])
-        new_order.store_duration_type = is_month
-        new_order.seasonal_goods_count = int(seasonal_things_count)
-        new_order.other_type_size = int(other_type_size)
-        new_order.save()
+        new_order.weight = order_values['weight']
+        new_order.volume = order_values['volume']
+        new_order.store_duration = int(order_values['months'])
         new_order.num = Orders.get_order_num(new_order.id, user)
-        new_order.cost = thing.get_storage_cost(
-            int(order_values['period_count']),
-            True if is_month == '1' else False,
-            new_order.seasonal_goods_count if is_seasonal else new_order.other_type_size
-        )
+        new_order.cost = order_values['order_cost']
         new_order.save()
         return new_order.create_qr_code()
 

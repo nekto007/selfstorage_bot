@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import (
     ConversationHandler,
 )
-from selfstoragebot.models import Clients, Orders, Goods
+from selfstoragebot.models import Clients, Orders
 from selfstoragebot.handlers.rent import static_text
 from .keyboard_utils import (
     make_choose_keyboard,
@@ -201,6 +201,7 @@ def get_retention_period(update,  rent_description):
         order_cost = calculate_the_order_cost(order_weight, order_volume, int(months))
 
         order_cost = round(order_cost)
+        rent_description.bot_data['order_cost'] = order_cost
         if order_cost is not None:
             text = static_text.order_cost.format(
             order_cost=order_cost
@@ -216,6 +217,7 @@ def get_retention_period(update,  rent_description):
 
             )
             return ask_pd()
+        qr_filename = Orders.save_order(rent_description.bot_data)
         text = static_text.order_complete
         update.message.reply_text(
             text=text,
