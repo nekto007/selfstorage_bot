@@ -43,6 +43,18 @@ rent_handler = ConversationHandler(
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_user_phone)
         ],
+        rent_handlers.WEIGHT: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_good_weight)
+        ],
+        rent_handlers.VOLUME: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_good_volume)
+        ],
+        rent_handlers.PERIOD: [
+MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_retention_period)
+        ]
     },
     fallbacks=[
         CommandHandler("cancel", common_handlers.command_cancel)
