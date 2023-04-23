@@ -1,6 +1,6 @@
 import logging
 import re
-import phonenumbers
+
 from telegram import Update
 from telegram.ext import (
     ConversationHandler,
@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD = range(9)
+ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME = range(10)
 
 
 def ask_pd(update: Update, _):
@@ -104,7 +104,7 @@ def get_user_choice(update, context):
     return ConversationHandler.END
 
 
-def pantry_delivery(update, context):
+def pantry_delivery(update: Update, context):
     print('pantry_delivery')
     ''' Сохраняем вид доставки вещей от клиента и спрашиваем адрес '''
 
@@ -152,6 +152,7 @@ def update_data_in_database(rent_description):
     user.email = rent_description.bot_data['email']
     user.save()
 
+
 def get_good_weight(update: Update,  rent_description):
     print('handle_weight')
     weight = update.message.text.strip()
@@ -171,17 +172,17 @@ def get_good_weight(update: Update,  rent_description):
     return WEIGHT
 
 
-def get_good_volume(update,  rent_description):
+def get_good_volume(update: Update,  rent_description):
     print('handle_volume')
     volume = update.message.text.strip()
     if volume.isnumeric() and 0 < int(volume):
         rent_description.bot_data['volume'] = int(volume)
-        text = static_text.request_period
+        text = static_text.request_name
         update.message.reply_text(
             text=text,
 
         )
-        return PERIOD
+        return NAME
     text = static_text.wrong_volume
     update.message.reply_text(
         text=text,
@@ -190,8 +191,26 @@ def get_good_volume(update,  rent_description):
     return VOLUME
 
 
-def get_retention_period(update,  rent_description):
-    print('handle_months')
+def get_item_name(update: Update,  rent_description):
+    print('get_item_name')
+    name_item = update.message.text
+    if name_item:
+        rent_description.bot_data['name_item'] = name_item
+        text = static_text.request_period
+        update.message.reply_text(
+            text=text,
+
+        )
+        return PERIOD
+    text = static_text.request_name
+    update.message.reply_text(
+        text=text,
+
+    )
+    return NAME
+
+def get_retention_period(update: Update,  rent_description):
+    print('get_retention_period')
     months = update.message.text.strip()
     if months.isnumeric() and 0 < int(months) <= 24:
         rent_description.bot_data['months'] = int(months)

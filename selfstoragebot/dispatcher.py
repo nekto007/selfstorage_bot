@@ -51,6 +51,10 @@ rent_handler = ConversationHandler(
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_good_volume)
         ],
+        rent_handlers.NAME: [
+MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_item_name)
+        ],
         rent_handlers.PERIOD: [
 MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_retention_period)

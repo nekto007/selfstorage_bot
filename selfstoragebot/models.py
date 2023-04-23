@@ -167,6 +167,7 @@ class Orders(models.Model):
         )
         new_order.weight = order_values['weight']
         new_order.volume = order_values['volume']
+        new_order.name = order_values['name_item']
         new_order.store_duration = int(order_values['months'])
         new_order.num = Orders.get_order_num(new_order.id, user)
         new_order.cost = order_values['order_cost']
