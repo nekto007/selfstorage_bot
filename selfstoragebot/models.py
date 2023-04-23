@@ -247,7 +247,7 @@ class Orders(models.Model):
             telegram_id=order_values['user_telegram_id'])
 
         new_order = Orders(
-            order_num=Orders.get_order_num(1, user),
+            num=Orders.get_order_num(1, user),
             storage=Warehouses.objects.get(name=order_values['address']),
             user=user,
             thing=thing
@@ -258,8 +258,8 @@ class Orders(models.Model):
         new_order.seasonal_goods_count = int(seasonal_things_count)
         new_order.other_type_size = int(other_type_size)
         new_order.save()
-        new_order.order_num = Orders.get_order_num(new_order.id, user)
-        new_order.summa = thing.get_storage_cost(
+        new_order.num = Orders.get_order_num(new_order.id, user)
+        new_order.cost = thing.get_storage_cost(
             int(order_values['period_count']),
             True if is_month == '1' else False,
             new_order.seasonal_goods_count if is_seasonal else new_order.other_type_size
