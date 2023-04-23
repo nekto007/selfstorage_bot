@@ -41,7 +41,7 @@ def send_message_with_addresses(update: Update, _):
         return OUR_DELIVERY
 
 
-def delivery_options(update: Update):
+def delivery_options(update: Update, _):
     print('delivery_options')
     answer = update.message.text
     if static_text.yes_no.index(answer) == 0:
