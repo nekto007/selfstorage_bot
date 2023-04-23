@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import (
     ConversationHandler,
 )
-
+from selfstoragebot.models import Clients, Orders, Goods
 from selfstoragebot.handlers.rent import static_text
 from .keyboard_utils import (
     make_choose_keyboard,
@@ -87,6 +87,8 @@ def get_user_email(update: Update, rent_description):
     user_email = update.message.text
     if re.search(r'@', user_email) and re.search(r'.', user_email):
         rent_description.bot_data['email'] = user_email
+        rent_description.bot_data['first_name'] = user.first_name
+        rent_description.bot_data['last_name'] = user.last_name
         logger.info('Пользователь %s ввел e-mail %s', user.first_name, user_email)
         text = static_text.request_phone
         update.message.reply_text(
@@ -132,14 +134,23 @@ def get_user_phone(update: Update, rent_description):
         return PHONE
 
     logger.info('Пользователь %s ввел телефон %s', user.first_name, phonenumber)
-    rent_description.bot_data['phone'] = phonenumber
+    rent_description.bot_data['phone_number'] = phonenumber
     text = static_text.request_weight
     update.message.reply_text(
         text=text,
 
     )
+    update_data_in_database(rent_description)
     return WEIGHT
 
+
+def update_data_in_database(rent_description):
+    user = Clients.objects.get(telegram_id=rent_description.bot_data['user_telegram_id'])
+    user.first_name = rent_description.bot_data['first_name']
+    user.last_name = rent_description.bot_data['last_name']
+    user.phone_number = rent_description.bot_data['phone_number']
+    user.email = rent_description.bot_data['email']
+    user.save()
 
 def get_good_weight(update: Update,  rent_description):
     print('handle_weight')
