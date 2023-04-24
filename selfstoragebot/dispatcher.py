@@ -73,6 +73,7 @@ def setup_dispatcher(dp):
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
     dp.add_handler(CommandHandler("cancel", common_handlers.command_cancel))
     dp.add_handler(CommandHandler("faq", common_handlers.show_faq))
+    dp.add_handler(CommandHandler("permitted", common_handlers.show_permitted_items))
 
     return dp
 

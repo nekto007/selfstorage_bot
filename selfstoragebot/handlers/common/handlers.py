@@ -50,3 +50,14 @@ def show_faq(update, _):
         parse_mode='HTML',
     )
     return ConversationHandler.END
+
+
+def show_permitted_items(update, _):
+    ''' Список разрешенных вещей '''
+
+    text = static_text.permitted_items
+    update.message.reply_text(
+        text=text,
+        parse_mode='HTML',
+    )
+    return ConversationHandler.END
