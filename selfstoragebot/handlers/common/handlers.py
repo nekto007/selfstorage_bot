@@ -39,3 +39,14 @@ def command_cancel(update: Update, _):
         reply_markup=make_keyboard_for_start_command(),
     )
     return ConversationHandler.END
+
+
+def show_faq(update, _):
+    ''' Часто задаваемые вопросы '''
+
+    text = static_text.faq
+    update.message.reply_text(
+        text=text,
+        parse_mode='HTML',
+    )
+    return ConversationHandler.END
