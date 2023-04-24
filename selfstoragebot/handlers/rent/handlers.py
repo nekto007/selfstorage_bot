@@ -1,5 +1,6 @@
 import logging
 import re
+import datetime
 
 from telegram import Update
 from telegram.ext import (
@@ -10,7 +11,9 @@ from selfstoragebot.handlers.rent import static_text
 from .keyboard_utils import (
     make_choose_keyboard,
     make_keyboard_with_addresses,
-    make_yes_no_keyboard
+    make_yes_no_keyboard,
+    make_keyboard_with_orders,
+    make_keyboard_return
 )
 
 logging.basicConfig(
@@ -18,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, AGREE_DISAGREE = range(11)
+ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, BOX_DETAIL, AGREE_DISAGREE = range(12)
 
 
 def ask_pd(update: Update, _):
@@ -120,9 +123,51 @@ def get_user_email(update: Update, rent_description):
     return EMAIL
 
 
-def get_user_choice(update, context):
+def get_user_choice(update, _):
     print('get_user_choice')
-    return ConversationHandler.END
+    user = update.message.from_user
+    user_id = user.id
+    orders = fetch_active_orders(user_id)
+    reply_markup = make_keyboard_with_orders(orders)
+    if orders:
+        text = static_text.order_list
+    else:
+        text = static_text.empty_orders
+    update.message.reply_text(
+            text=text,
+            reply_markup=reply_markup
+        )
+    return BOX_DETAIL
+
+
+def exit(update, _):
+    first_name = update.message.from_user.first_name
+    text = static_text.bye_bye.format(
+            first_name=first_name
+    )
+    update.message.reply_text(text=text)
+    return CommandHandler.END
+
+
+def show_detail_box(update: Update, context):
+    query = update.callback_query
+    user = query.from_user
+    if query.data == 'back':
+        command_cancel(update, rent_description)
+    else:    
+        reply_markup = make_keyboard_return()
+        order_id = query.data
+        order = Orders.objects.get(id=order_id)
+        name = order.name
+        address = order.warehouse
+        data_end = get_date_end(order.order_date, order.store_duration)
+        # name = rent_description['name']
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f'{name}\nАдрес: {address}\nХраним до: {data_end}',
+            reply_markup=reply_markup
+        )
+    return CommandHandler.END
 
 
 def pantry_delivery(update: Update, rent_description):
@@ -132,7 +177,7 @@ def pantry_delivery(update: Update, rent_description):
     address_from = update.message.text
     user = update.message.from_user
     rent_description.bot_data['address_from'] = address_from
-    rent_description.bot_data['type_delivery'] = 1
+    rent_description.bot_data['type_delivery'] = '1'
     logger.info('Пользователь %s ввел исходящий адрес %s', user.first_name, address_from)
     text = static_text.request_email
     update.message.reply_text(
@@ -143,7 +188,7 @@ def pantry_delivery(update: Update, rent_description):
 
 def get_user_phone(update: Update, rent_description):
     print('get_user_phone')
-    ''' Сохраняем номер телефона и завершаем разговор'''
+    ''' Сохраняем номер телефона'''
 
     user = update.message.from_user
     phone_number = update.message.text
@@ -174,6 +219,30 @@ def update_data_in_database(rent_description):
     user.phone_number = rent_description.bot_data['phone_number']
     user.email = rent_description.bot_data['email']
     user.save()
+
+
+def get_date_end(begin, duration):
+    return begin + datetime.timedelta(days=duration*30)
+
+
+def fetch_active_orders(user_id):
+    user = Clients.objects.get(telegram_id=user_id)
+    orders_obj = Orders.objects.filter(user=user).exclude(delivery_status=5)
+    orders = []
+    for order in orders_obj:
+        temp_order = {}
+        temp_order['id'] = order.id
+        temp_order['num'] = order.num
+        temp_order['name'] = order.name
+        temp_order['address_from'] = order.address_from
+        temp_order['date_delivery_from'] = order.date_delivery_from
+        # temp_order['address_to'] = order.address_to
+        # temp_order['date_delivery_to'] = order.date_delivery_to
+        temp_order['date_end'] = get_date_end(order.order_date,
+            order.store_duration)
+        temp_order['delivery_status'] = order.delivery_status
+        orders.append(temp_order)
+    return orders
 
 
 def get_good_weight(update: Update,  rent_description):
@@ -231,7 +300,6 @@ def get_item_name(update: Update,  rent_description):
 
     )
     return NAME
-
 
 def get_retention_period(update: Update,  rent_description):
     print('get_retention_period')
