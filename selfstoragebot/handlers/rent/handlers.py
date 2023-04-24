@@ -3,7 +3,7 @@ import re
 
 from telegram import Update
 from telegram.ext import (
-    ConversationHandler,
+    ConversationHandler
 )
 from selfstoragebot.models import Clients, Orders
 from selfstoragebot.handlers.rent import static_text
@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME = range(10)
+ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, AGREE_DISAGREE = range(11)
 
 
 def ask_pd(update: Update, _):
@@ -28,7 +28,22 @@ def ask_pd(update: Update, _):
         text,
         reply_markup=make_yes_no_keyboard()
     )
-    return ADDRESS
+    return AGREE_DISAGREE
+
+
+def agree_disagree_handler(update: Update, _):
+    response = update.message.text
+
+    if response == 'Не согласен':
+        update.message.reply_text("Извините, для дальнейшей работы вам необходимо согласиться с приведенным выше документом.")
+        return ConversationHandler.END
+    elif response == 'Согласен':
+        text = static_text.choose_address
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_addresses(),
+        )
+        return ADDRESS
 
 
 def send_message_with_addresses(update: Update, _):
