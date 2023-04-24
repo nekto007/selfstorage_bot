@@ -10,7 +10,7 @@ from selfstoragebot.models import Clients, InvitationLink
 from .keyboard_utils import make_keyboard_for_start_command
 
 
-def command_start(update: Update, context: CallbackContext):
+def command_start(update: Update, context):
     print('command_start')
     user_info = update.message.from_user.to_dict()
     user, created = Clients.objects.get_or_create(
@@ -59,7 +59,7 @@ def generate_unique_invitation_link(bot_username: str) -> str:
 def command_generate_invitation_link(update: Update, context: CallbackContext):
     bot_username = context.bot.username
     invitation_link = generate_unique_invitation_link(bot_username)
-    update.message.reply_text(f"Your unique invitation link: {invitation_link}")
+    update.message.reply_text(f"Ваша уникальная пригласительная ссылка: {invitation_link}")
 
 
 def command_cancel(update: Update, _):
