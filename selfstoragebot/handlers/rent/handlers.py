@@ -217,6 +217,7 @@ def get_item_name(update: Update,  rent_description):
     )
     return NAME
 
+
 def get_retention_period(update: Update,  rent_description):
     print('get_retention_period')
     months = update.message.text.strip()
