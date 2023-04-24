@@ -19,11 +19,14 @@ class WarehouseAdmin(admin.ModelAdmin):
 class OrdersAdmin(admin.ModelAdmin):
     list_display = [
         'num', 'order_date', 'warehouse', 'user', 'name',
+        'type_delivery', 'delivery_status'
     ]
     list_filter = ['warehouse']
     fields = [
         'order_date', 'warehouse', 'user', 'name',
-        'weight', 'volume', 'store_duration', 'cost'
+        'weight', 'volume', 'store_duration', 'cost',
+        'type_delivery', 'delivery_status', 'date_delivery_from',
+        'address_from'
     ]
 
 
