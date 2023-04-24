@@ -6,6 +6,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+class InvitationLink(models.Model):
+    link_id = models.CharField(max_length=255, unique=True)
+    click_count = models.IntegerField(default=0)
+
+
 class TimeStampedMixin(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
