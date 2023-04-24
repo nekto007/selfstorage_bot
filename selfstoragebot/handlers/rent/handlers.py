@@ -1,11 +1,14 @@
 import logging
 import re
 import datetime
-
+import os
+from dateutil.relativedelta import relativedelta
 from telegram import Update
 from telegram.ext import (
-    ConversationHandler
+    ConversationHandler,
+    CommandHandler
 )
+from selfstorage.settings import BASE_DIR
 from selfstoragebot.models import Clients, Orders
 from selfstoragebot.handlers.rent import static_text
 from .keyboard_utils import (
@@ -329,11 +332,32 @@ def get_retention_period(update: Update,  rent_description):
             )
             return ask_pd()
         qr_filename = Orders.save_order(rent_description.bot_data)
-        text = static_text.order_complete
+        text = static_text.order_complete.format(
+            first_name=rent_description.bot_data['first_name'],
+            last_name=rent_description.bot_data['last_name'],
+            phone_number=rent_description.bot_data['phone_number'],
+            email=rent_description.bot_data['email'],
+            address=rent_description.bot_data['address'],
+            item=rent_description.bot_data['name_item'],
+            weight=rent_description.bot_data['weight'],
+            volume=rent_description.bot_data['volume'],
+            period=rent_description.bot_data['months'],
+        )
         update.message.reply_text(
             text=text,
 
         )
+        period_count = rent_description.bot_data['months']
+        date_from = datetime.datetime.now()
+        date_to = date_from + relativedelta(months=int(period_count))
+        with open(qr_filename, 'rb') as qr_file:
+            caption = static_text.qr_caption.format(
+                date_from=date_from.strftime('%d.%m.%Y'),
+                date_to=date_to.strftime('%d.%m.%Y')
+            )
+            update.message.reply_document(document=qr_file,
+                                          caption=caption)
+        os.remove(BASE_DIR / qr_filename)
         return ConversationHandler.END
     else:
         text = static_text.wrong_period
