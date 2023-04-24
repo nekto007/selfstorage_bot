@@ -179,7 +179,7 @@ def update_data_in_database(rent_description):
 def get_good_weight(update: Update,  rent_description):
     print('handle_weight')
     weight = update.message.text.strip()
-    if weight.isnumeric() and 0 < int(weight):
+    if weight.isnumeric() and 0 < int(weight) < 1000:
         rent_description.bot_data['weight'] = int(weight)
         text = static_text.request_volume
         update.message.reply_text(
@@ -198,7 +198,7 @@ def get_good_weight(update: Update,  rent_description):
 def get_good_volume(update: Update,  rent_description):
     print('handle_volume')
     volume = update.message.text.strip()
-    if volume.isnumeric() and 0 < int(volume):
+    if volume.isnumeric() and 0 < int(volume) < 100:
         rent_description.bot_data['volume'] = int(volume)
         text = static_text.request_name
         update.message.reply_text(
