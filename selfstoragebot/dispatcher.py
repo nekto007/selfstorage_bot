@@ -9,11 +9,8 @@ from selfstorage.settings import DEBUG, TELEGRAM_TOKEN
 from selfstoragebot.handlers.common import handlers as common_handlers
 from selfstoragebot.handlers.rent import handlers as rent_handlers
 from selfstoragebot.handlers.common.handlers import command_generate_invitation_link
+from selfstoragebot.handlers.rent.static_text import yes_no
 
-yes_no = [
-    'Согласен',
-    'Не согласен'
-]
 
 rent_handler = ConversationHandler(
     entry_points=[
