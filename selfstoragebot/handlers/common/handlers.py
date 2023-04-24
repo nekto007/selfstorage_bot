@@ -10,7 +10,7 @@ from selfstoragebot.models import Clients, InvitationLink
 from .keyboard_utils import make_keyboard_for_start_command
 
 
-def command_start(update: Update, context: CallbackContext):
+def command_start(update: Update, context):
     print('command_start')
     user_info = update.message.from_user.to_dict()
     user, created = Clients.objects.get_or_create(
