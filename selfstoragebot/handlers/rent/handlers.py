@@ -153,7 +153,7 @@ def show_detail_box(update: Update, context):
     query = update.callback_query
     user = query.from_user
     if query.data == 'back':
-        command_cancel(update, rent_description)
+        return ask_pd
     else:    
         reply_markup = make_keyboard_return()
         order_id = query.data
