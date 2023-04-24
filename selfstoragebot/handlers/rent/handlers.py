@@ -4,7 +4,7 @@ import datetime
 
 from telegram import Update
 from telegram.ext import (
-    ConversationHandler,
+    ConversationHandler
 )
 from selfstoragebot.models import Clients, Orders
 from selfstoragebot.handlers.rent import static_text
@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, BOX_DETAIL = range(11)
+ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, BOX_DETAIL, AGREE_DISAGREE = range(12)
 
 
 def ask_pd(update: Update, _):
@@ -31,7 +31,22 @@ def ask_pd(update: Update, _):
         text,
         reply_markup=make_yes_no_keyboard()
     )
-    return ADDRESS
+    return AGREE_DISAGREE
+
+
+def agree_disagree_handler(update: Update, _):
+    response = update.message.text
+
+    if response == 'Не согласен':
+        update.message.reply_text("Извините, для дальнейшей работы вам необходимо согласиться с приведенным выше документом.")
+        return ConversationHandler.END
+    elif response == 'Согласен':
+        text = static_text.choose_address
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_addresses(),
+        )
+        return ADDRESS
 
 
 def send_message_with_addresses(update: Update, _):
@@ -232,7 +247,7 @@ def fetch_active_orders(user_id):
 def get_good_weight(update: Update,  rent_description):
     print('handle_weight')
     weight = update.message.text.strip()
-    if weight.isnumeric() and 0 < int(weight):
+    if weight.isnumeric() and 0 < int(weight) < 1000:
         rent_description.bot_data['weight'] = int(weight)
         text = static_text.request_volume
         update.message.reply_text(
@@ -251,7 +266,7 @@ def get_good_weight(update: Update,  rent_description):
 def get_good_volume(update: Update,  rent_description):
     print('handle_volume')
     volume = update.message.text.strip()
-    if volume.isnumeric() and 0 < int(volume):
+    if volume.isnumeric() and 0 < int(volume) < 100:
         rent_description.bot_data['volume'] = int(volume)
         text = static_text.request_name
         update.message.reply_text(
