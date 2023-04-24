@@ -1,7 +1,12 @@
-from telegram import KeyboardButton, ReplyKeyboardMarkup
+from telegram import (
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 
 from .static_text import (
-    addresses, choose_option, yes_no,
+    addresses, choose_option, yes_no, return_or_no
 )
 
 
@@ -43,6 +48,28 @@ def make_choose_keyboard() -> ReplyKeyboardMarkup:
 def make_keyboard_with_addresses() -> ReplyKeyboardMarkup:
     buttons = [KeyboardButton(address) for address in addresses]
 
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    return reply_markup
+
+def make_keyboard_with_orders(orders):
+    buttons = []
+    if orders:
+        buttons = [InlineKeyboardButton(order['name'], callback_data=orders.index(order)) for \
+        order in orders]
+    buttons.append(InlineKeyboardButton('Назад', callback_data='back'))
+    reply_markup = InlineKeyboardMarkup(
+        build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    return reply_markup
+
+def make_keyboard_return():
+    buttons = [KeyboardButton(return_) for return_ in return_or_no]
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=2),
         resize_keyboard=True,

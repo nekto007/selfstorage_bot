@@ -3,7 +3,7 @@ import sys
 
 import telegram.error
 from telegram import Bot
-from telegram.ext import (CommandHandler, ConversationHandler, Dispatcher, Filters, MessageHandler, Updater)
+from telegram.ext import (CommandHandler, ConversationHandler, Dispatcher, Filters, MessageHandler, Updater, CallbackQueryHandler)
 
 from selfstorage.settings import DEBUG, TELEGRAM_TOKEN
 from selfstoragebot.handlers.common import handlers as common_handlers
@@ -16,7 +16,7 @@ rent_handler = ConversationHandler(
         MessageHandler(Filters.regex('^(Список действующих боксов)$'),
                        rent_handlers.get_user_choice),
         MessageHandler(Filters.regex('^(Выход)$'),
-                       rent_handlers.get_user_choice),
+                       rent_handlers.exit),
     ],
     states={
         rent_handlers.ORDER: [
@@ -52,12 +52,15 @@ rent_handler = ConversationHandler(
                            rent_handlers.get_good_volume)
         ],
         rent_handlers.NAME: [
-MessageHandler(Filters.text & ~Filters.command,
+            MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_item_name)
         ],
         rent_handlers.PERIOD: [
-MessageHandler(Filters.text & ~Filters.command,
+            MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_retention_period)
+        ],
+        rent_handlers.BOX_DETAIL: [
+            CallbackQueryHandler(rent_handlers.show_detail_box)
         ]
     },
     fallbacks=[
