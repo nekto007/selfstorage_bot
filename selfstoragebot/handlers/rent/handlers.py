@@ -134,7 +134,7 @@ def exit(update, _):
     return CommandHandler.END
 
 
-def show_detail_box(update: Update, _):
+def show_detail_box(update: Update, context):
     query = update.callback_query
     user = query.from_user
     if query.data == 'back':
@@ -147,7 +147,8 @@ def show_detail_box(update: Update, _):
         address = order.warehouse
         data_end = get_date_end(order.order_date, order.store_duration)
         # name = rent_description['name']
-        update.bot.send_message(
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
             text=f'{name}\nАдрес: {address}\nХраним до: {data_end}',
             reply_markup=reply_markup
         )

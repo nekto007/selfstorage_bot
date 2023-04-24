@@ -58,7 +58,7 @@ def make_keyboard_with_addresses() -> ReplyKeyboardMarkup:
 def make_keyboard_with_orders(orders):
     buttons = []
     if orders:
-        buttons = [InlineKeyboardButton(order['name'], callback_data=order.id) for \
+        buttons = [InlineKeyboardButton(order['name'], callback_data=order['id']) for \
         order in orders]
     buttons.append(InlineKeyboardButton('Назад', callback_data='back'))
     reply_markup = InlineKeyboardMarkup(
