@@ -8,6 +8,7 @@ from telegram.ext import (CommandHandler, ConversationHandler, Dispatcher, Filte
 from selfstorage.settings import DEBUG, TELEGRAM_TOKEN
 from selfstoragebot.handlers.common import handlers as common_handlers
 from selfstoragebot.handlers.rent import handlers as rent_handlers
+from selfstoragebot.handlers.admin import handlers as admin_handlers
 from selfstoragebot.handlers.common.handlers import command_generate_invitation_link
 from selfstoragebot.handlers.rent.static_text import yes_no
 
@@ -84,7 +85,8 @@ def setup_dispatcher(dp):
     dp.add_handler(CommandHandler("faq", common_handlers.show_faq))
     dp.add_handler(CommandHandler("permitted", common_handlers.show_permitted_items))
     dp.add_handler(CommandHandler("invite", command_generate_invitation_link))
-
+    dp.add_handler(CommandHandler("admin", admin_handlers.command_admin))
+    dp.add_handler(CallbackQueryHandler(admin_handlers.send_orders_statistics))
     return dp
 
 

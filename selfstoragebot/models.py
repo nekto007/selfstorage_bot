@@ -85,6 +85,12 @@ class Clients(UUIDMixin, TimeStampedMixin):
         blank=True,
         verbose_name='email'
     )
+    is_admin = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name='Администратор'
+    )
 
     def __str__(self):
         if self.username:
@@ -105,6 +111,7 @@ class Orders(models.Model):
         in_route = '3', _('Курьер в пути')
         Completed = '4', _('Груз на складе')
         retrieved = '5', _('Возвращен')
+        expired = '6', _('Истех срок хранения')
 
     class TypeDelivery(models.TextChoices):
         yourself = '0', _('Самостоятельно')
