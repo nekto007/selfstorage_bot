@@ -9,6 +9,12 @@ from selfstorage.settings import DEBUG, TELEGRAM_TOKEN
 from selfstoragebot.handlers.common import handlers as common_handlers
 from selfstoragebot.handlers.rent import handlers as rent_handlers
 
+
+yes_no = [
+    'Согласен',
+    'Не согласен'
+]
+
 rent_handler = ConversationHandler(
     entry_points=[
         MessageHandler(Filters.regex('^(Оформить заказ)$'),
@@ -19,6 +25,9 @@ rent_handler = ConversationHandler(
                        rent_handlers.get_user_choice),
     ],
     states={
+        rent_handlers.AGREE_DISAGREE: [
+            MessageHandler(Filters.text(yes_no), rent_handlers.agree_disagree_handler)
+        ],
         rent_handlers.ORDER: [
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.send_message_with_addresses)
