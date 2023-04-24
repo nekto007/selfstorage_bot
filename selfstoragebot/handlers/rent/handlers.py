@@ -3,7 +3,7 @@ import re
 
 from telegram import Update
 from telegram.ext import (
-    ConversationHandler, CallbackContext
+    ConversationHandler
 )
 from selfstoragebot.models import Clients, Orders
 from selfstoragebot.handlers.rent import static_text
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, AGREE_DISAGREE = range(11)
 
 
-def ask_pd(update: Update, context: CallbackContext) -> int:
+def ask_pd(update: Update, _):
     print('ask_pd')
     text = static_text.pd
     update.message.reply_text(
@@ -31,7 +31,7 @@ def ask_pd(update: Update, context: CallbackContext) -> int:
     return AGREE_DISAGREE
 
 
-def agree_disagree_handler(update: Update, context: CallbackContext) -> int:
+def agree_disagree_handler(update: Update, _):
     response = update.message.text
 
     if response == 'Не согласен':
