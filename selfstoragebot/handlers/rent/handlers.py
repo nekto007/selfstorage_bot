@@ -141,8 +141,8 @@ def show_detail_box(update: Update, _):
         command_cancel(update, rent_description)
     else:    
         reply_markup = make_keyboard_return()
-        order_index = query.data
-        order = Orders.objects.get(id=order_index)
+        order_id = query.data
+        order = Orders.objects.get(id=order_id)
         name = order.name
         address = order.warehouse
         data_end = get_date_end(order.order_date, order.store_duration)
