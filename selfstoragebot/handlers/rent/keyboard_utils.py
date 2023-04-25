@@ -6,7 +6,7 @@ from telegram import (
 )
 
 from .static_text import (
-    addresses, choose_option, yes_no, return_or_no
+    addresses, choose_option, yes_no, return_or_no, deliveries
 )
 
 
@@ -55,6 +55,7 @@ def make_keyboard_with_addresses() -> ReplyKeyboardMarkup:
     )
     return reply_markup
 
+
 def make_keyboard_with_orders(orders):
     buttons = []
     if orders:
@@ -68,8 +69,20 @@ def make_keyboard_with_orders(orders):
     )
     return reply_markup
 
-def make_keyboard_return():
-    buttons = [KeyboardButton(return_) for return_ in return_or_no]
+
+def make_keyboard_return(order_id):
+    buttons = [KeyboardButton(return_.format(order_id=order_id)) for return_ in return_or_no]
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    return reply_markup
+
+
+def make_keyboard_delivery(order_id):
+    buttons = [KeyboardButton(delivery.format(order_id=order_id)) for delivery in deliveries]
+
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=2),
         resize_keyboard=True,
