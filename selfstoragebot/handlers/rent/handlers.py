@@ -16,18 +16,20 @@ from .keyboard_utils import (
     make_keyboard_with_addresses,
     make_yes_no_keyboard,
     make_keyboard_with_orders,
-    make_keyboard_return
+    make_keyboard_return,
+    make_keyboard_delivery
 )
+from ..common.handlers import command_start
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, BOX_DETAIL, AGREE_DISAGREE = range(12)
+ORDER, OPTION, OUR_DELIVERY, ADDRESS, EMAIL, PHONE, WEIGHT, VOLUME, PERIOD, NAME, BOX_DETAIL, AGREE_DISAGREE, RETURN_METHOD, BOXES, METHOD, ADDRESS_TO = range(16)
 
 
-def ask_pd(update: Update, _):
+def ask_pd(update: Update, context):
     print('ask_pd')
     text = static_text.pd
     update.message.reply_text(
@@ -77,7 +79,7 @@ def delivery_options(update: Update, rent_description):
         )
         return EMAIL
     else:
-        text = static_text.request_address_to
+        text = static_text.request_address_from
         update.message.reply_text(
             text
         )
@@ -126,17 +128,20 @@ def get_user_email(update: Update, rent_description):
     return EMAIL
 
 
-def get_user_choice(update, _):
+def get_user_choice(update, context):
     print('get_user_choice')
-    user = update.message.from_user
-    user_id = user.id
+    if update.message:
+        user_id = update.message.from_user.id
+    else:
+        user_id = context.user_data['user_id']
     orders = fetch_active_orders(user_id)
     reply_markup = make_keyboard_with_orders(orders)
     if orders:
         text = static_text.order_list
     else:
         text = static_text.empty_orders
-    update.message.reply_text(
+    context.bot.send_message(
+            chat_id=update.effective_chat.id,
             text=text,
             reply_markup=reply_markup
         )
@@ -149,28 +154,84 @@ def exit(update, _):
             first_name=first_name
     )
     update.message.reply_text(text=text)
-    return CommandHandler.END
+    return ConversationHandler.END
 
 
 def show_detail_box(update: Update, context):
+    print('show_detail_box')
     query = update.callback_query
     user = query.from_user
     if query.data == 'back':
-        return ask_pd
+        context.user_data['user_id'] = user.id
+        context.user_data['username'] = user.username
+        context.user_data['first_name'] = user.first_name
+        return command_start(update, context)
     else:    
-        reply_markup = make_keyboard_return()
         order_id = query.data
         order = Orders.objects.get(id=order_id)
         name = order.name
         address = order.warehouse
         data_end = get_date_end(order.order_date, order.store_duration)
-        # name = rent_description['name']
+        reply_markup = make_keyboard_return(order_id)
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f'{name}\nАдрес: {address}\nХраним до: {data_end}',
             reply_markup=reply_markup
         )
-    return CommandHandler.END
+    return RETURN_METHOD
+
+
+def ask_return_method(update: Update, context):
+    print('ask_return_method')
+    client_wish = update.message.text
+    user = update.message.from_user
+    if client_wish == static_text.return_or_no[1]:
+        logger.info(f'Пользователь %s оставляет бокс без изменений', user.first_name)
+        context.user_data['user_id'] = user.id
+        update.message.reply_text(text='Пусть полежит')
+        return get_user_choice(update, context)
+    else:
+        order_id = client_wish.split()[-1]
+        logger.info(f'Пользователь %s хочет забрать бокс %s', user.first_name, order_id)
+        order = Orders.objects.get(id=order_id)
+        order.delivery_status = '2'
+        order.save()
+        text = static_text.request_delivery
+        reply_markup = make_keyboard_delivery(order_id)
+        update.message.reply_text(text=text, reply_markup=reply_markup)
+        return METHOD
+        
+
+def ask_address_to(update: Update, context):
+    print('ask_address_to')
+    client_wish = update.message.text
+    order_id = update.message.text.split()[-1]
+    order = Orders.objects.get(id=order_id)
+    if client_wish == static_text.deliveries[0]:
+        order.type_delivery = '0'
+        order.save()
+        text = static_text.self_return.format(address=order.warehouse)
+        update.message.reply_text(text=text)
+        return ConversationHandler.END
+    else:
+        order.type_delivery = '1'
+        order.save()
+        text = static_text.request_address_to
+        context.user_data['id'] = order_id
+        update.message.reply_text(text=text)
+        return ADDRESS_TO
+
+
+def get_address_to(update: Update, context):
+    print('get_address_to')
+    address_to = update.message.text
+    order_id = context.user_data['id']
+    order = Orders.objects.get(id=order_id)
+    order.address_to = address_to
+    order.save()
+    text = static_text.courier_return
+    update.message.reply_text(text=text)
+    return ConversationHandler.END
 
 
 def pantry_delivery(update: Update, rent_description):

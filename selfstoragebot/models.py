@@ -166,6 +166,12 @@ class Orders(models.Model):
         blank=True,
         verbose_name='Address of picking up'
     )
+    address_to = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True,
+        verbose_name='Address of returning'
+    )
     date_delivery_from = models.DateTimeField(
         null=True,
         blank=True,

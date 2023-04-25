@@ -3,7 +3,7 @@ import sys
 
 import telegram.error
 from telegram import Bot
-from telegram.ext import (CommandHandler, ConversationHandler, Dispatcher, Filters, MessageHandler, Updater, CallbackQueryHandler)
+from telegram.ext import (CommandHandler, ConversationHandler, Dispatcher, Filters, MessageHandler, Updater, CallbackQueryHandler, ShippingQueryHandler)
 
 from selfstorage.settings import DEBUG, TELEGRAM_TOKEN
 from selfstoragebot.handlers.common import handlers as common_handlers
@@ -68,6 +68,21 @@ rent_handler = ConversationHandler(
         ],
         rent_handlers.BOX_DETAIL: [
             CallbackQueryHandler(rent_handlers.show_detail_box)
+        ],
+        rent_handlers.RETURN_METHOD: [
+            MessageHandler(Filters.text & ~Filters.command,
+                            rent_handlers.ask_return_method)
+        ],
+        rent_handlers.BOXES: [
+            ShippingQueryHandler(rent_handlers.get_user_choice)
+        ],
+        rent_handlers.METHOD: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.ask_address_to)
+        ],
+        rent_handlers.ADDRESS_TO: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_address_to)
         ]
     },
     fallbacks=[
